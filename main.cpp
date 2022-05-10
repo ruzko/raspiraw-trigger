@@ -10,6 +10,7 @@
  * As a testing environment, step 2 is replaced by a code block which emulates pin state by changing between 'LOW' and 'HIGH' every 5 seconds
  *
  */
+#include <ios>
 #include <stdio.h>
 //#include <pigpio.h>
 #include <iostream>
@@ -17,6 +18,7 @@
 #include <string>
 #include <filesystem>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 //using std::fstream;
@@ -29,10 +31,11 @@ using std::fstream;
 //using std::filesystem::remove
 
 const char* statusFile ="gpio_pin_status.txt";
-const char* readPinFile ="dummy_gpio.txt";
+const char* readPinFile = "dummy_gpio.txt";
+char currentStatus;
 
-int main(int argc, char **argv) {
-//int main () {
+//int main(int argc, char **argv) {
+int main () {
 
 /*  if (gpioInitialise() < 0)
   {
@@ -64,7 +67,8 @@ int main(int argc, char **argv) {
 
 */
 
- ifstream ifs = readPinFile("dummy_gpio.txt");
+
+ fstream ifs("dummy_gpio.txt");
 
   ifs.open(readPinFile, ios_base::in);
   if (ifs.is_open() == true)
@@ -72,7 +76,13 @@ int main(int argc, char **argv) {
   else
   cout << "File could not be open!" << endl;
 
-string line;
+vector<char> bytes;
+char byte = 0;
+while (ifs.get(byte))
+{
+  bytes.push_back(byte);
+}
+ifs.close();
   int runtime = '0';
   int interval = '5'; //milliseconds
   while (1)
@@ -82,23 +92,22 @@ string line;
       deltaTime = clock - runtime;
     if (deltaTime == interval)
     {
-       ifs.open("dummy_gpio.txt");
-       int currentStatus;
-       currentStatus = ifs;
+       ifs.open("dummy_gpio.txt", ios_base::out);
+       
     }
-        if (currentStatus == 1)
+        if (byte == 1)
         {
-            ifs << "0";
+            ifs << 0;
             ifs.close();
         }
-        else if (currentStatus == 0)
+        else if (byte == 0)
         {
-            ifs << "1";
+            ifs << 1;
             ifs.close();
         }
 
 
-    readPinFile << "0";
+    ifs << 0;
     ifs.close();
     runtime=runtime+interval;
 
@@ -116,18 +125,19 @@ string line;
 //End of actual code block 2
 
 //Start of code block 3, writing currentStatus to statusFile
-ofstream ofs = statusFile("gpio_pin_status.txt");
+
+fstream ofs("gpio_pin_status.txt", ios_base::out);
   if (currentStatus == 1)
   {
     fprintf(stdout, "<PRESSED>\n");
-    statusFile << "1";
+    ofs<<1;
     ofs.close();
   }
 
   if(currentStatus == 0)
   {
     fprintf(stdout, "<NONE>\n");
-    statusFile << "0";
+    ofs << 0;
     ofs.close();
   }
 
