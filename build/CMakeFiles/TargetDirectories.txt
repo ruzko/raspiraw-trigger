@@ -1,0 +1,7 @@
+/var/home/Jacob/projects/readpin/build/CMakeFiles/readpin.dir
+/var/home/Jacob/projects/readpin/build/CMakeFiles/edit_cache.dir
+/var/home/Jacob/projects/readpin/build/CMakeFiles/rebuild_cache.dir
+/var/home/Jacob/projects/readpin/build/CMakeFiles/list_install_components.dir
+/var/home/Jacob/projects/readpin/build/CMakeFiles/install.dir
+/var/home/Jacob/projects/readpin/build/CMakeFiles/install/local.dir
+/var/home/Jacob/projects/readpin/build/CMakeFiles/install/strip.dir

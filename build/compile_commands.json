@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/var/home/Jacob/projects/readpin/build",
+  "command": "/usr/bin/c++ -g -o CMakeFiles/readpin.dir/main.cpp.o -c /var/home/Jacob/projects/readpin/main.cpp",
+  "file": "/var/home/Jacob/projects/readpin/main.cpp"
+}
+]
