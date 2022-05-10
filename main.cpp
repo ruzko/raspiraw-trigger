@@ -28,8 +28,8 @@ using std::fstream;
 
 //using std::filesystem::remove
 
-const char* statusFile = "gpio_pin_status.txt";
-const char* readPinFile = "dummy_gpio.txt";
+const char* statusFile ="gpio_pin_status.txt";
+const char* readPinFile ="dummy_gpio.txt";
 
 int main(int argc, char **argv) {
 //int main () {
@@ -39,7 +39,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 */
-//code block 1, deleting statusFile
+//code block 1, deleting output statusFile
+
   try
   {
     if (remove(statusFile))
@@ -48,35 +49,30 @@ int main(int argc, char **argv) {
        cout << "file " << statusFile << " not found.\n";
   }
 
-  catch(std::filesystem::filesystem_error const& ex)
+  catch(system_error const& ex)
   {
      cout << "filesystem error: " ; //<<err.what() << */'\n';
   }
 
-  //fstream statusFile("gpio_pin_status.txt");
+  
 
 // End of code block 1
 
 //Start of temporary code block 2, swapping state of 'pin' between 'LOW' and 'HIGH' every 5 seconds. First deleting readPinFile
 
 /*
-  try
-  {
-    if (remove(readPinFile))
-       cout << "file " << readPinFile << " deleted.\n";
-    else
-       cout << "file " << readPinFile << " not found.\n";
-  }
 
-  catch(std::filesystem::filesystem_error const& ex)
-  {
-     cout << "filesystem error: " ; //<<err.what() << '\n';
-  }
 */
 
- ifstream readPinFile("dummy_gpio.txt");
+ ifstream ifs = readPinFile("dummy_gpio.txt");
 
-  string line;
+  ifs.open(readPinFile, ios_base::in);
+  if (ifs.is_open() == true)
+  cout << "File is opened." << endl;
+  else
+  cout << "File could not be open!" << endl;
+
+string line;
   int runtime = '0';
   int interval = '5'; //milliseconds
   while (1)
@@ -86,23 +82,24 @@ int main(int argc, char **argv) {
       deltaTime = clock - runtime;
     if (deltaTime == interval)
     {
-       readPinFile.open();
-       int currentStatus << readPinFile;
+       ifs.open("dummy_gpio.txt");
+       int currentStatus;
+       currentStatus = ifs;
     }
         if (currentStatus == 1)
         {
-            readPinFile << "0";
-            readPinFile.close();
+            ifs << "0";
+            ifs.close();
         }
-            else if (currentStatus == 0)
-            {
-            readPinFile << "1";
-            readPinFile.close();
-            }
+        else if (currentStatus == 0)
+        {
+            ifs << "1";
+            ifs.close();
+        }
 
 
     readPinFile << "0";
-    readPinFile.close();
+    ifs.close();
     runtime=runtime+interval;
 
   }
@@ -119,18 +116,19 @@ int main(int argc, char **argv) {
 //End of actual code block 2
 
 //Start of code block 3, writing currentStatus to statusFile
+ofstream ofs = statusFile("gpio_pin_status.txt");
   if (currentStatus == 1)
   {
     fprintf(stdout, "<PRESSED>\n");
     statusFile << "1";
-    statusFile.close();
+    ofs.close();
   }
 
   if(currentStatus == 0)
   {
     fprintf(stdout, "<NONE>\n");
     statusFile << "0";
-    statusFile.close();
+    ofs.close();
   }
 
 //  gpioTerminate(); // Compulsory. If gpio isn't terminated, pins aren't uninitialized and can cause trouble for later assignments.
