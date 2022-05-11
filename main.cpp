@@ -1,5 +1,3 @@
-// compile with : g++ -Wall -pthread -o readpin2 readpin.cpp -l pigpio
-
 /*This c++ program should do the following steps:
  * 1. delete any pre-exisiting 'outputFile' and declare a 'new' outputFile,
  * 2. read pin state from 'readPinFile'.
@@ -28,73 +26,73 @@ using std::fstream;
 
 //global declarations
 const char* outputFile ="triggerOutStatus.txt";
-const char* readPinFile = "dummy_gpio.txt";
+const char* readPinFile = "dummyGPIO.txt";
 char currentStatus;  //A store for the single integers read from 'readPinFile'
 fstream ifs;
 fstream ofs;
 int interval = 5; //seconds between swapping of 'inputFile'
 
-void function();
+void function(); // the loop is called function
 
 int main () {
 
-// Starting the count
+// Starting the time counter
     time_t startTime, end;
     startTime = time(0);
-    //deltaTime = clock();
+
+
+//initialising RPi GPIO pins
 /*  if (gpioInitialise() < 0)
   {
     return 1;
   }
 */
-//code block 1, deleting output outputFile
-/*
-  try
-  {
-    if (remove(outputFile))
-       cout << "file " << outputFile << " deleted.\n";
-    else
-       cout << "file " << outputFile << " not found.\n";
-  }
+//code block 1, pre-run tests
 
-  catch(system_error const& ex)
-  {
-     cout << "filesystem error: " ; //<<err.what() << '\n';
-  }
+/*Testing whether the readPinFile can be read from,
+ *and printing corresponding message.
+ *If no file exists, it is created.*/
 
-
-
-*/
-fstream ifs; //(readPinFile); //declaring a file stream object
-//Testing whether the file can be read from, and
-  ifs.open(readPinFile, ios::in);
+  ifs.open(readPinFile, ios::out);
   if (ifs.is_open())
   {
     cout << "inputFile is opened!" << endl;
-
+    ifs.put('0');
   }
+
   else
   {
      cerr << "inputFile could not be opened" << endl;
   }
-ifs.close();
+  ifs.close();
 
 
-ofstream ofs;//declaring a file stream object
-//Testing whether the file can be read from, and
+
+/*Testing whether the outputFile can be read from,
+ *and printing corresponding message.
+ *If no file exists, it is created.*/
+
   ofs.open(outputFile, ios::out);
   if (ofs.is_open())
   {
     cout << "outputFile is opened!" << endl;
+    ofs.put('0');
   }
   else
   {
 
     cerr << "outputFile could not be opened" << endl;
   }
-ofs.close();
+  ofs.close();
 
- while (1)
+
+// End of code block 1
+
+//--------------------------------------------------------------//
+
+// Code block 2: Setting up a loop which runs function() every time 'interval' is reached.
+
+  while (1)
   {
 
     if (time(0) - startTime == interval)
@@ -105,11 +103,13 @@ ofs.close();
   }
    return 0;
 }
-// End of code block 1
+
+// End of code block 2
 
 //------------------------------------------------------------//
 
-//Start of temporary code block 2, swapping state of 'pin' between 'LOW' and 'HIGH' every 5 seconds. First deleting readPinFile
+/*Start of temporary code block 3:
+printing current state of 'readPinFile' and  swapping state between 'LOW' and 'HIGH' */
 
 void function()
 {
@@ -123,11 +123,7 @@ void function()
   //closing read-only filestream of 'readPinFile'
   ifs.close();
 
-  //declaring variables for the sake of timing the swapping of values written to 'readPinFile'
-//  int runtime = '0';
-//  ; //milliseconds
 
-    {
 // Opening 'readPinFile' as writable filestream
        ifs.open(readPinFile, ios::out);
 
@@ -143,7 +139,7 @@ void function()
             ifs.close();
         }
 
-    }
+
 
 //End of temporary code block 2
 

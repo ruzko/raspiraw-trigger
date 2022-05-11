@@ -1,4 +1,3 @@
 
 *.txt
-*.txt
-build/gpio_pin_status.txt
+
