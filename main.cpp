@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <ctime>
 #include <vector>
+#include <tuple>
 
 using namespace std;
 //using std::fstream;
@@ -29,7 +30,7 @@ using std::fstream;
 
 //using std::filesystem::remove
 
-const char* outputFile ="gpio_pin_status.txt";
+const char* outputFile ="triggerOutStatus.txt";
 const char* readPinFile = "dummy_gpio.txt";
 char currentStatus;  //A store for the single integers read from 'readPinFile'
 
@@ -42,7 +43,7 @@ int main () {
   }
 */
 //code block 1, deleting output outputFile
-
+/*
   try
   {
     if (remove(outputFile))
@@ -53,62 +54,85 @@ int main () {
 
   catch(system_error const& ex)
   {
-     cout << "filesystem error: " ; //<<err.what() << */'\n';
+     cout << "filesystem error: " ; //<<err.what() << '\n';
   }
 
 
+
+*/
+fstream ifs; //(readPinFile); //declaring a file stream object
+//Testing whether the file can be read from, and
+  ifs.open(readPinFile, ios::in);
+  if (ifs.is_open())
+  {
+    cout << "inputFile is opened!" << endl;
+
+  }
+  else
+  {
+     cerr << "inputFile could not be opened" << endl;
+  }
+ifs.close();
+
+
+ofstream ofs;//(outputFile);//declaring a file stream object
+//Testing whether the file can be read from, and
+  ofs.open(outputFile, ios::out);
+  if (ofs.is_open())
+  {
+    cout << "outputFile is opened!" << endl;
+  }
+  else
+  {
+
+    cerr << "outputFile could not be opened" << endl;
+  }
+ofs.close();
 
 // End of code block 1
 
 //Start of temporary code block 2, swapping state of 'pin' between 'LOW' and 'HIGH' every 5 seconds. First deleting readPinFile
 
- fstream ifs(readPinFile); //declaring a file stream object
-//Testing whether the file can be read from, and
-  ifs.open(readPinFile, ios_base::in);
-  if (!ifs.is_open())
-  {
-    cerr << "File could not be opened" << endl;
-  }
-  else
-  {
-    cout << "File is opened!" << endl;
-  }
-
 
 // int currentStatus;
 //while (ifs.get(currentStatus)) //read
 //{
-  currentStatus = readPinFile.get();
-ifs.close();
+ifs.open(readPinFile, ios::in);
+  ifs.get(currentStatus);
+
+  cout << "input is currently " << currentStatus << endl;
+
+//  }
+  ifs.close();
   int runtime = '0';
   int interval = '5'; //milliseconds
-  while (runtime < 2000)
-  {
-      int deltaTime;
+ // while (runtime < 2000)
+//  {
+/*      int deltaTime;
       int clock = clock_t();
       deltaTime = clock - runtime;
     if (deltaTime == interval)
-    {
-       ifs.open(readPinFile, ios_base::out);
+*///    {
+       ifs.open(readPinFile, ios::out);
 
-    }
-        if (currentStatus == 1)
+//    }
+        if (currentStatus == '1')
         {
-            ifs << 0;
+            ifs.put('0');
             ifs.close();
         }
-        else if (currentStatus == 0)
+        else
         {
-            ifs << 1;
+            ifs.put('1');
             ifs.close();
-        }
+       }
 
 
-    ifs << 0;
-    ifs.close();
+ //   ifs.put('0');
+ //   ifs.close();
     runtime=runtime+interval;
 
-  }
+//  }
 //}
 //End of temporary code block 2
 
@@ -125,20 +149,26 @@ ifs.close();
 //Start of code block 3, writing currentStatus to outputFile
 
 int outputStatus;
-fstream ofs(outputFile, ios_base::out);
-  if (currentStatus == 1)
+ofs.open(outputFile, ios::out);
+  switch(currentStatus)
   {
+    case '1' :
     fprintf(stdout, "<PRESSED>\n");
-    outputStatus = 1;
-    ofs << 1;
+    outputStatus = '1';
+    ofs.put(outputStatus);
     ofs.close();
-  }
+    break;
 
-  if(currentStatus == 0)
-  {
+    case '0' :
     fprintf(stdout, "<NONE>\n");
-    ofs << 0;
+    outputStatus = '0';
+    ofs.put(outputStatus);
     ofs.close();
+    break;
+
+    default :
+      cout << "Switch statement failed" << endl;
+
   }
 
 //  gpioTerminate(); // Compulsory. If gpio isn't terminated, pins aren't uninitialized and can cause trouble for later assignments.
