@@ -14,6 +14,7 @@ As a testing environment, step 2 is replaced by a code block which emulates pin 
 #include <string>
 #include <filesystem>
 #include <ctime>
+#include <cstdlib>
 
 using namespace std;
 using std::cout;
@@ -32,19 +33,28 @@ fstream ifs;
 fstream ofs;
 int interval = 5; //seconds between permutations/loops
 int outputStatus; //declaring variable 'outputStatus' for storing integers
+string runCommand;
+const char* outputRunCommand;
+char recordingTriggered = false;
 
  // The function that runs once if functionRead reads '1', is called functionTrigger
 
 
 int main () {
 
+
+//code block 1: user input, pre-run tests and initializations
 //initialising RPi GPIO pins
 /*  if (gpioInitialise() < 0)
   {
     return 1;
   }
 */
-//code block 1, pre-run tests
+cout << "which command would you like to run?"<< endl;
+
+getline(cin, runCommand);
+
+cout << "Running " << runCommand << endl;
 
 /*Testing whether the readPinFile can be read from,
  *and printing corresponding message.
@@ -54,7 +64,7 @@ int main () {
   if (ifs.is_open())
   {
     cout << "inputFile is opened!" << endl;
-    ifs.put('1');
+    ifs.put('0');
   }
 
   else
@@ -126,6 +136,7 @@ int main () {
 
     if (currentStatus != previousStatus)
     {
+
     //opening 'outputFile' as a writable filestream
     ofs.open(outputFile, ios::out);
 
@@ -138,6 +149,12 @@ int main () {
         outputStatus = '1';
         ofs.put(outputStatus);
         ofs.close();
+        //run command only once upon trigger condition
+        if (recordingTriggered != true)
+        {
+          system(runCommand.c_str());
+          recordingTriggered = true;
+        }
         break;
 
         //if currentStatus equals 0, it means the extruder is inactive. Don't trigger a recording
@@ -155,7 +172,11 @@ int main () {
       }
     }
 
-}
+  if (recordingTriggered == true)
+  {
+    break;
+  }
+  }
 //  gpioTerminate(); // Compulsory. If gpio isn't terminated, pins aren't uninitialized and can cause trouble for later assignments.
 
 return 0;
