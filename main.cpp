@@ -27,26 +27,16 @@ using std::fstream;
 const char* outputFile ="triggerOutStatus.txt";
 const char* readPinFile = "dummyGPIO.txt";
 char currentStatus;  //A store for the single integers read from 'readPinFile'
-char previousStatus; //A store for the last/previous value of 'currentStatus'
+char previousStatus = 0; //A store for the last/previous value of 'currentStatus'
 fstream ifs;
 fstream ofs;
 int interval = 5; //seconds between permutations/loops
 int outputStatus; //declaring variable 'outputStatus' for storing integers
-int runOnce = '1'; // Making sure trigger event only runs once per program start
-
-void functionRead(); // the always-running read loop is called functionRead
-int functionTrigger();
-
 
  // The function that runs once if functionRead reads '1', is called functionTrigger
 
 
 int main () {
-
-// Starting the time counter
-    time_t startTime, end;
-    startTime = time(0);
-
 
 //initialising RPi GPIO pins
 /*  if (gpioInitialise() < 0)
@@ -64,7 +54,7 @@ int main () {
   if (ifs.is_open())
   {
     cout << "inputFile is opened!" << endl;
-    ifs.put('0');
+    ifs.put('1');
   }
 
   else
@@ -101,67 +91,25 @@ int main () {
 
   while (1) //infinite loop
   {
-    //time condition for running functionRead
-  if (time(0) - startTime == interval);
+    //opening 'readPinFile' as read-only filestream, reading the first character and storing it in 'currentStatus'
+    previousStatus = currentStatus;
+    ifs.open(readPinFile, ios::in);
+    ifs.get(currentStatus);
+
+    //printing 'currentStatus' for testing purposes
+    if (previousStatus != currentStatus)
     {
-      functionRead();
-      startTime=startTime+interval;
-   //   functionTrigger();
+    cout << "input is currently " << currentStatus << endl;
     }
 
+    //closing read-only filestream of 'readPinFile'
+    ifs.close();
 
-  }
-  return 0;
-}
 // End of code block 2
 
 //------------------------------------------------------------//
 
-/*Start of temporary code block 3:
-printing current state of 'readPinFile' and  swapping state between 'LOW' and 'HIGH' */
-
-void functionRead()
-{
-
-  //opening 'readPinFile' as read-only filestream, reading the first character and storing it in 'currentStatus'
-  ::previousStatus = ::currentStatus;
-  ifs.open(readPinFile, ios::in);
-  ifs.get(::currentStatus);
-
-  //printing 'currentStatus' for testing purposes
-  if (::previousStatus != ::currentStatus)
-  {
-  cout << "input is currently " << ::currentStatus << endl;
-
-  //closing read-only filestream of 'readPinFile'
-  ifs.close();
-
-  }
-
-}
-/*
-// Opening 'readPinFile' as writable filestream
-       ifs.open(readPinFile, ios::out);
-
-// reading value stored in 'currentStatus', and writing the opposite value to 'readPinFile'. In effect flipping the value each permutation
-        if (currentStatus == '1')
-        {
-            ifs.put('0');
-            ifs.close();
-        }
-        else
-        {
-            ifs.put('1');
-            ifs.close();
-        }
-
-
-*/
-//End of temporary code block 2
-
-//--------------------------------------------------------------------//
-
-//Start of actual code block 2, reading status of pin into a variable
+//Start of code block 3, reading status of pin into a variable
 /*
   gpioSetMode(18, PI_INPUT);
   gpioSetPullUpDown(18, PI_PUD_DOWN);
@@ -169,44 +117,46 @@ void functionRead()
   if (gpioRead(18) == PI_LOW)
 {*/
 
-//End of actual code block 2
+//End of actual code block 3
 
 //--------------------------------------------------------------------//
 
-//Start of code block 3, writing currentStatus to outputFile
+//Start of code block 4, writing currentStatus to outputFile
 
-int functionTrigger()
-{
-//opening 'outputFile' as a writable filestream
 
-//if (::currentStatus != ::previousStatus)
+    if (currentStatus != previousStatus)
+    {
+    //opening 'outputFile' as a writable filestream
+    ofs.open(outputFile, ios::out);
 
-  ofs.open(outputFile, ios::out);
-// A switch case which reads the value stored in 'currentStatus' and writes the same value to 'outputFile'
-  switch(::currentStatus)
-  {
-    // if currentStatus equals 1, it means the extruder is active. Possible to trigger a recording
-    case '1' :
-    cout << "<Extruder active>" << endl;
-    outputStatus = '1';
-    ofs.put(outputStatus);
-    ofs.close();
-    break;
+    // A switch case which reads the value stored in 'currentStatus' and writes the same value to 'outputFile'
+        switch(currentStatus)
+      {
+        // if currentStatus equals 1, it means the extruder is active. Possible to trigger a recording
+        case '1' :
+        cout << "<Extruder active>" << endl;
+        outputStatus = '1';
+        ofs.put(outputStatus);
+        ofs.close();
+        break;
 
-    //if currentStatus equals 0, it means the extruder is inactive. Don't trigger a recording
-    case '0' :
-    cout << "<Not extruding>" << endl;
-    outputStatus = '0';
-    ofs.put(outputStatus);
-    ofs.close();
-    break;
+        //if currentStatus equals 0, it means the extruder is inactive. Don't trigger a recording
+        case '0' :
+        cout << "<Not extruding>" << endl;
+        outputStatus = '0';
+        ofs.put(outputStatus);
+        ofs.close();
+        break;
 
-    // Error handling in case something goes wrong
-    default :
-    cout << "Switch statement failed" << endl;
+        // Error handling in case something goes wrong
+        default :
+        cout << "Switch statement failed" << endl;
 
-  }
-return 0;
+      }
+    }
+
+}
 //  gpioTerminate(); // Compulsory. If gpio isn't terminated, pins aren't uninitialized and can cause trouble for later assignments.
 
+return 0;
 }
