@@ -26,16 +26,16 @@ using std::fstream;
 //global declarations
 const char* outputFile ="triggerOutStatus.txt";
 const char* readPinFile = "dummyGPIO.txt";
-static int currentStatus;  //A store for the single integers read from 'readPinFile'
+char currentStatus;  //A store for the single integers read from 'readPinFile'
 char previousStatus; //A store for the last/previous value of 'currentStatus'
 fstream ifs;
 fstream ofs;
-int interval = 1; //seconds between permutations/loops
-char outputStatus; //declaring variable 'outputStatus' for storing integers
-s // Making sure trigger event only runs once per program start
+int interval = 5; //seconds between permutations/loops
+int outputStatus; //declaring variable 'outputStatus' for storing integers
+int runOnce = '1'; // Making sure trigger event only runs once per program start
 
-int* functionRead(); // the always-running read loop is called functionRead
-int* functionTrigger();
+void functionRead(); // the always-running read loop is called functionRead
+int functionTrigger();
 
 
  // The function that runs once if functionRead reads '1', is called functionTrigger
@@ -99,26 +99,19 @@ int main () {
 
 // Code block 2: Setting up a loop which runs function() every time 'interval' is reached.
 
-  while (1)
+  while (1) //infinite loop
   {
+    //time condition for running functionRead
   if (time(0) - startTime == interval);
     {
       functionRead();
       startTime=startTime+interval;
-      if (currentStatus == '1')
-      {
-      functionTrigger();
-    }}
+   //   functionTrigger();
+    }
+
+
   }
-// if pin is HIGH, run functionTrigger
- // i)
-//  {
-   // functionTrigger();
-//  }
-
-
-
-return 0;
+  return 0;
 }
 // End of code block 2
 
@@ -127,24 +120,24 @@ return 0;
 /*Start of temporary code block 3:
 printing current state of 'readPinFile' and  swapping state between 'LOW' and 'HIGH' */
 
-int* functionRead()
+void functionRead()
 {
-static int currentStatus;
+
   //opening 'readPinFile' as read-only filestream, reading the first character and storing it in 'currentStatus'
-  previousStatus = currentStatus;
+  ::previousStatus = ::currentStatus;
   ifs.open(readPinFile, ios::in);
-  ifs.get(currentStatus);
+  ifs.get(::currentStatus);
 
   //printing 'currentStatus' for testing purposes
-  if (previousStatus != currentStatus)
+  if (::previousStatus != ::currentStatus)
   {
-  cout << "input is currently " << currentStatus << endl;
+  cout << "input is currently " << ::currentStatus << endl;
 
   //closing read-only filestream of 'readPinFile'
   ifs.close();
 
   }
-  return *currentStatus;
+
 }
 /*
 // Opening 'readPinFile' as writable filestream
@@ -182,20 +175,20 @@ static int currentStatus;
 
 //Start of code block 3, writing currentStatus to outputFile
 
-
-int* functionTrigger()
+int functionTrigger()
 {
 //opening 'outputFile' as a writable filestream
-ofs.open(outputFile, ios::out);
-static int* persistentStatus;
+
+//if (::currentStatus != ::previousStatus)
+
+  ofs.open(outputFile, ios::out);
 // A switch case which reads the value stored in 'currentStatus' and writes the same value to 'outputFile'
-  switch(currentStatus)
+  switch(::currentStatus)
   {
     // if currentStatus equals 1, it means the extruder is active. Possible to trigger a recording
     case '1' :
     cout << "<Extruder active>" << endl;
     outputStatus = '1';
-    *persistentStatus = 1;
     ofs.put(outputStatus);
     ofs.close();
     break;
@@ -204,7 +197,6 @@ static int* persistentStatus;
     case '0' :
     cout << "<Not extruding>" << endl;
     outputStatus = '0';
-    *persistentStatus = "0;
     ofs.put(outputStatus);
     ofs.close();
     break;
@@ -214,6 +206,7 @@ static int* persistentStatus;
     cout << "Switch statement failed" << endl;
 
   }
+return 0;
 //  gpioTerminate(); // Compulsory. If gpio isn't terminated, pins aren't uninitialized and can cause trouble for later assignments.
-return *persistentStatus;
+
 }
