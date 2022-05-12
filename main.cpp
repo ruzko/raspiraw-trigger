@@ -14,7 +14,7 @@ As a testing environment, step 2 is replaced by a code block which emulates pin 
 #include <string>
 #include <filesystem>
 #include <ctime>
-
+#include <mutex>
 
 using namespace std;
 using std::cout;
@@ -22,17 +22,32 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::fstream;
+std::once_flag flag1;
+//static once_flag flag = ONCE_FLAG_INIT;
 
 
 //global declarations
 const char* outputFile ="triggerOutStatus.txt";
 const char* readPinFile = "dummyGPIO.txt";
 char currentStatus;  //A store for the single integers read from 'readPinFile'
+char previousStatus; //A store for the last/previous value of 'currentStatus'
 fstream ifs;
 fstream ofs;
-int interval = 5; //seconds between swapping of 'inputFile'
+int interval = 1; //seconds between permutations/loops
+int outputStatus; //declaring variable 'outputStatus' for storing integers
+int runOnce = '1'; // Making sure trigger event only runs once per program start
 
-void function(); // the loop is called function
+void functionRead(); // the always-running read loop is called functionRead
+void functionTrigger()
+{std::call_once(flag1, []()
+  {ofs.open(outputFile, ios::out);
+    outputStatus = '1';
+    ofs.put(outputStatus);
+    ofs.close();
+  });
+}
+ // The function that runs once if functionRead reads '1', is called functionTrigger
+
 
 int main () {
 
@@ -97,13 +112,29 @@ int main () {
 
     if (time(0) - startTime == interval)
     {
-      function();
-      startTime=startTime+interval;
-    }
-  }
-   return 0;
-}
 
+      functionRead();
+      startTime=startTime+interval;
+   //  if (currentStatus == '1')
+     // {
+
+    //  }
+    }
+
+    if (currentStatus == '1')
+    {
+    //  std::call_once (ONCE_FLAG_INIT, functionTrigger);
+  /*{
+    functionTrigger(&flag ); });
+ */ }
+  }
+
+
+
+
+
+return 0;
+}
 // End of code block 2
 
 //------------------------------------------------------------//
@@ -111,19 +142,32 @@ int main () {
 /*Start of temporary code block 3:
 printing current state of 'readPinFile' and  swapping state between 'LOW' and 'HIGH' */
 
-void function()
+void functionRead()
 {
+
   //opening 'readPinFile' as read-only filestream, reading the first character and storing it in 'currentStatus'
+  previousStatus = currentStatus;
   ifs.open(readPinFile, ios::in);
   ifs.get(currentStatus);
 
   //printing 'currentStatus' for testing purposes
+  if (previousStatus != currentStatus)
+  {
   cout << "input is currently " << currentStatus << endl;
+
 
   //closing read-only filestream of 'readPinFile'
   ifs.close();
+//  if (currentStatus == '1')
+ // {
+ // std::call_once ( flag1, []()
+  //{
+    functionTrigger(); //});
 
-
+ // }
+  }
+}
+/*
 // Opening 'readPinFile' as writable filestream
        ifs.open(readPinFile, ios::out);
 
@@ -140,7 +184,7 @@ void function()
         }
 
 
-
+*/
 //End of temporary code block 2
 
 //--------------------------------------------------------------------//
@@ -159,10 +203,12 @@ void function()
 
 //Start of code block 3, writing currentStatus to outputFile
 
-//declaring variable 'outputStatus' for storing integers
-int outputStatus;
 
+functionTrigger()
+{
 //opening 'outputFile' as a writable filestream
+//if (runOnce < 1 )
+//{
 ofs.open(outputFile, ios::out);
 
 // A switch case which reads the value stored in 'currentStatus' and writes the same value to 'outputFile'
@@ -186,10 +232,11 @@ ofs.open(outputFile, ios::out);
 
     // Error handling in case something goes wrong
     default :
-      cout << "Switch statement failed" << endl;
+    cout << "Switch statement failed" << endl;
 
   }
-
+//runOnce ++;
+//}
 //  gpioTerminate(); // Compulsory. If gpio isn't terminated, pins aren't uninitialized and can cause trouble for later assignments.
-
+return 0;
 }
