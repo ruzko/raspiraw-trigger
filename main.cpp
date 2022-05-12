@@ -14,7 +14,6 @@ As a testing environment, step 2 is replaced by a code block which emulates pin 
 #include <string>
 #include <filesystem>
 #include <ctime>
-#include <mutex>
 
 using namespace std;
 using std::cout;
@@ -22,30 +21,23 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::fstream;
-std::once_flag flag1;
-//static once_flag flag = ONCE_FLAG_INIT;
 
 
 //global declarations
 const char* outputFile ="triggerOutStatus.txt";
 const char* readPinFile = "dummyGPIO.txt";
-char currentStatus;  //A store for the single integers read from 'readPinFile'
+static int currentStatus;  //A store for the single integers read from 'readPinFile'
 char previousStatus; //A store for the last/previous value of 'currentStatus'
 fstream ifs;
 fstream ofs;
 int interval = 1; //seconds between permutations/loops
-int outputStatus; //declaring variable 'outputStatus' for storing integers
-int runOnce = '1'; // Making sure trigger event only runs once per program start
+char outputStatus; //declaring variable 'outputStatus' for storing integers
+s // Making sure trigger event only runs once per program start
 
-void functionRead(); // the always-running read loop is called functionRead
-void functionTrigger()
-{std::call_once(flag1, []()
-  {ofs.open(outputFile, ios::out);
-    outputStatus = '1';
-    ofs.put(outputStatus);
-    ofs.close();
-  });
-}
+int* functionRead(); // the always-running read loop is called functionRead
+int* functionTrigger();
+
+
  // The function that runs once if functionRead reads '1', is called functionTrigger
 
 
@@ -109,27 +101,20 @@ int main () {
 
   while (1)
   {
-
-    if (time(0) - startTime == interval)
+  if (time(0) - startTime == interval);
     {
-
       functionRead();
       startTime=startTime+interval;
-   //  if (currentStatus == '1')
-     // {
-
-    //  }
-    }
-
-    if (currentStatus == '1')
-    {
-    //  std::call_once (ONCE_FLAG_INIT, functionTrigger);
-  /*{
-    functionTrigger(&flag ); });
- */ }
+      if (currentStatus == '1')
+      {
+      functionTrigger();
+    }}
   }
-
-
+// if pin is HIGH, run functionTrigger
+ // i)
+//  {
+   // functionTrigger();
+//  }
 
 
 
@@ -142,9 +127,9 @@ return 0;
 /*Start of temporary code block 3:
 printing current state of 'readPinFile' and  swapping state between 'LOW' and 'HIGH' */
 
-void functionRead()
+int* functionRead()
 {
-
+static int currentStatus;
   //opening 'readPinFile' as read-only filestream, reading the first character and storing it in 'currentStatus'
   previousStatus = currentStatus;
   ifs.open(readPinFile, ios::in);
@@ -155,17 +140,11 @@ void functionRead()
   {
   cout << "input is currently " << currentStatus << endl;
 
-
   //closing read-only filestream of 'readPinFile'
   ifs.close();
-//  if (currentStatus == '1')
- // {
- // std::call_once ( flag1, []()
-  //{
-    functionTrigger(); //});
 
- // }
   }
+  return *currentStatus;
 }
 /*
 // Opening 'readPinFile' as writable filestream
@@ -204,13 +183,11 @@ void functionRead()
 //Start of code block 3, writing currentStatus to outputFile
 
 
-functionTrigger()
+int* functionTrigger()
 {
 //opening 'outputFile' as a writable filestream
-//if (runOnce < 1 )
-//{
 ofs.open(outputFile, ios::out);
-
+static int* persistentStatus;
 // A switch case which reads the value stored in 'currentStatus' and writes the same value to 'outputFile'
   switch(currentStatus)
   {
@@ -218,6 +195,7 @@ ofs.open(outputFile, ios::out);
     case '1' :
     cout << "<Extruder active>" << endl;
     outputStatus = '1';
+    *persistentStatus = 1;
     ofs.put(outputStatus);
     ofs.close();
     break;
@@ -226,6 +204,7 @@ ofs.open(outputFile, ios::out);
     case '0' :
     cout << "<Not extruding>" << endl;
     outputStatus = '0';
+    *persistentStatus = "0;
     ofs.put(outputStatus);
     ofs.close();
     break;
@@ -235,8 +214,6 @@ ofs.open(outputFile, ios::out);
     cout << "Switch statement failed" << endl;
 
   }
-//runOnce ++;
-//}
 //  gpioTerminate(); // Compulsory. If gpio isn't terminated, pins aren't uninitialized and can cause trouble for later assignments.
-return 0;
+return *persistentStatus;
 }
