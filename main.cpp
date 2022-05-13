@@ -13,8 +13,8 @@ As a testing environment, step 2 is replaced by a code block which emulates pin 
 #include <fstream>
 #include <string>
 #include <filesystem>
-#include <ctime>
-#include <cstdlib>
+//#include <cstdlib>
+#include <cstring>
 
 using namespace std;
 using std::cout;
@@ -31,14 +31,12 @@ char currentStatus;  //A store for the single integers read from 'readPinFile'
 char previousStatus = 0; //A store for the last/previous value of 'currentStatus'
 fstream ifs;
 fstream ofs;
-int interval = 5; //seconds between permutations/loops
 int outputStatus; //declaring variable 'outputStatus' for storing integers
-string runCommand;
-const char* outputRunCommand;
+char* oldRunCommand;
+char runCommand[256];
+bool commandCheck1;
+bool commandCheck2;
 char recordingTriggered = false;
-
- // The function that runs once if functionRead reads '1', is called functionTrigger
-
 
 int main () {
 
@@ -50,9 +48,18 @@ int main () {
     return 1;
   }
 */
-cout << "which command would you like to run?"<< endl;
 
-getline(cin, runCommand);
+  cout << "Which command would you like to run?"<< endl;
+  cout << "It must be either raspiraw w/ options or a script in ~/raspiraw/tools/ directory" << endl;
+
+while(commandCheck1 == 0 && commandCheck2 == 0)
+{
+  oldRunCommand = runCommand;
+  cin.clear();
+  cin.getline (runCommand, 256);
+  commandCheck1 = strstr (runCommand, "raspiraw");
+  commandCheck2 = strstr (runCommand, "640");
+}
 
 cout << "Running " << runCommand << endl;
 
@@ -150,9 +157,9 @@ cout << "Running " << runCommand << endl;
         ofs.put(outputStatus);
         ofs.close();
         //run command only once upon trigger condition
-        if (recordingTriggered != true)
+        if (recordingTriggered != true && (commandCheck1 != 0 || commandCheck2 != 0))
         {
-          system(runCommand.c_str());
+          system(runCommand);
           recordingTriggered = true;
         }
         break;
